@@ -1,0 +1,1959 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>决策之镜（30组黑客松） - 通过沉浸式故事探索决策结果</title>
+<style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c 0%, #2a4b8d 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .container::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            z-index: -1;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+        
+        .step-container {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .step-container.active {
+            display: block;
+        }
+        
+        .step-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #4fc3f7;
+        }
+        
+        .step-description {
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .input-section {
+            margin: 30px 0;
+            text-align: left;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 1rem;
+        }
+        
+        /* 修复MBTI选择框字体颜色问题 */
+        select option {
+            background: #2a4b8d;
+            color: white;
+        }
+        
+        input::placeholder, textarea::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .form-col {
+            flex: 1;
+        }
+        
+        .story-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 30px 0;
+            text-align: left;
+            line-height: 1.7;
+            border-left: 4px solid #4fc3f7;
+        }
+        
+        .story-title {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            color: #4fc3f7;
+        }
+        
+        .options-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin: 30px 0;
+        }
+        
+        .option-card {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 20px;
+            width: calc(50% - 15px);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .option-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .option-card.selected {
+            border-color: #4fc3f7;
+            background: rgba(79, 195, 247, 0.2);
+        }
+        
+        .option-title {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #4fc3f7;
+        }
+        
+        .option-description {
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        
+        button {
+            background: linear-gradient(to right, #2196F3, #03A9F4);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        .nav-btn {
+            padding: 12px 25px;
+            font-size: 1rem;
+        }
+        
+        .back-btn {
+            background: linear-gradient(to right, #667eea, #764ba2);
+        }
+        
+        .progress-container {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            height: 10px;
+            margin: 30px 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(to right, #2196F3, #03A9F4);
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .step-indicators {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .step-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            margin: 0 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .step-indicator.active {
+            background: #4fc3f7;
+            transform: scale(1.2);
+        }
+        
+        .result-section {
+            display: none;
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            text-align: left;
+            animation: fadeIn 1s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .result-title {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            text-align: center;
+            color: #4fc3f7;
+        }
+        
+        .result-content {
+            line-height: 1.6;
+            font-size: 1.1rem;
+        }
+        
+        .consequence-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #FF9800;
+        }
+        
+        .consequence-title {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: #FF9800;
+        }
+        
+        .reflection-questions {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .reflection-title {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: #4CAF50;
+        }
+        
+        .loading {
+            display: none;
+            margin: 20px 0;
+        }
+        
+        .spinner {
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 5px solid #fff;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .decoration {
+            position: absolute;
+            opacity: 0.1;
+            z-index: -1;
+        }
+        
+        .decoration-1 {
+            top: 10%;
+            left: 5%;
+            font-size: 100px;
+        }
+        
+        .decoration-2 {
+            bottom: 10%;
+            right: 5%;
+            font-size: 80px;
+            transform: rotate(180deg);
+        }
+        
+        .disclaimer {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            opacity: 0.7;
+            text-align: center;
+        }
+        
+        .character-badge {
+            display: inline-block;
+            background: rgba(79, 195, 247, 0.3);
+            padding: 5px 12px;
+            border-radius: 20px;
+            margin: 0 5px 10px 0;
+            font-size: 0.9rem;
+        }
+        
+        .character-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        
+        .character-title {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: #4fc3f7;
+            text-align: center;
+        }
+        
+        .story-image {
+            width: 100%;
+            height: 100px;
+            border-radius: 10px;
+            background: transparent;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            opacity: 0.7;
+        }
+        
+        .choice-result {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #FF9800;
+        }
+        
+        .choice-title {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: #FF9800;
+        }
+        
+        /* 新增样式 */
+        .input-hint {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 5px;
+            font-style: italic;
+        }
+        
+        .life-review-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #9C27B0;
+        }
+        
+        .life-review-title {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: #9C27B0;
+        }
+        
+        .decision-review {
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        
+        .decision-review-title {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: #4fc3f7;
+        }
+        
+        .alternative-outcome {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border-left: 3px solid #FF9800;
+        }
+        
+        .alternative-title {
+            font-size: 1rem;
+            margin-bottom: 5px;
+            color: #FF9800;
+        }
+        
+        
+        .ending-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #00BCD4;
+        }
+        
+        .ending-title {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: #00BCD4;
+        }
+
+        .risk-indicator {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            padding: 5px 10px;
+            border-radius: 15px;
+            display: inline-block;
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            color: white;
+            font-size: 1.2rem;
+        }
+        
+        .loading-overlay .spinner {
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 5px solid #fff;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .subtitle {
+                font-size: 1rem;
+            }
+            
+            .option-card {
+                width: 100%;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+        }
+
+/* --- 以下为从 a5 合并的第1页样式 --- */
+/* 仅第1页新增的少量样式 */
+    .req::after{content:" *";color:#ffdf6b}
+    .chip-group{display:flex;flex-wrap:wrap;gap:10px}
+    .chip{padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.2);cursor:pointer;font-size:.95rem;user-select:none}
+    .chip:hover{background:rgba(255,255,255,.28)}
+    .chip.selected{border-color:#4fc3f7;background:rgba(79,195,247,.25)}
+    .hint{font-size:.9rem;opacity:.85;margin-top:6px}
+    .muted{opacity:.9}
+    .mbti-box{border:1px solid rgba(255,255,255,.2);border-radius:12px;padding:12px;background:rgba(0,0,0,.15)}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="decoration decoration-1">📖</div>
+<div class="decoration decoration-2">📖</div>
+<h1>决策之镜<span class="subtitle-badge">（30组黑客松）</span></h1>
+<p class="subtitle">通过沉浸式故事探索不同决策的可能结果</p>
+<!-- 进度条 -->
+<div class="progress-container">
+<div class="progress-bar" id="progressBar"></div>
+</div>
+<!-- 步骤指示器 -->
+<div class="step-indicators" id="stepIndicators"></div>
+<!-- 步骤1: 基本信息 -->
+<div class="step-container active" id="step1">
+<h2 class="step-title">第一步：创建您的角色</h2>
+<p class="step-description">姓名、年龄为必填；职业支持“行业→岗位→其他（自填）”；MBTI 用速查表与快选一键选择。</p>
+<div class="input-section">
+<!-- 姓名 / 年龄（必填） -->
+<div class="form-row">
+<div class="form-col">
+<div class="form-group">
+<label class="req" for="name">姓名</label>
+<input id="name" placeholder="请输入您的姓名" required="" type="text"/>
+</div>
+</div>
+<div class="form-col">
+<div class="form-group">
+<label class="req" for="age">年龄</label>
+<input id="age" max="120" min="1" placeholder="请输入您的年龄" required="" type="number"/>
+</div>
+</div>
+</div>
+<!-- 职业（行业→岗位，并支持“其他（请填写）”） -->
+<div class="form-row">
+<div class="form-col">
+<div class="form-group">
+<label>行业（可选）</label>
+<select id="industry">
+<option value="">请选择行业</option>
+<option>IT/互联网</option><option>金融/银行/保险</option><option>教育/培训/高校</option>
+<option>医疗/制药/生物</option><option>制造/工业/汽车</option><option>能源/化工/矿业</option>
+<option>建筑/工程/房地产</option><option>交通/物流/供应链</option><option>零售/电商/快消</option>
+<option>文娱/传媒/游戏</option><option>法律/咨询/会计</option><option>政府/公共事业/事业单位</option>
+<option>农业/环保/新能源</option><option>旅游/酒店/餐饮</option><option>非营利/公益</option>
+<option>自由职业/个体</option><option>其他</option>
+</select>
+</div>
+</div>
+<div class="form-col">
+<div class="form-group">
+<label>岗位（可选）</label>
+<select disabled="" id="role">
+<option value="">请先选择行业</option>
+</select>
+<!-- 自定义岗位 -->
+<div class="form-group" id="roleOtherWrap" style="display:none;margin-top:8px;">
+<input id="roleOther" placeholder="请输入自定义岗位" type="text"/>
+</div>
+</div>
+</div>
+</div>
+<!-- 汇总为 profession（兼容原版） -->
+<input id="profession" type="hidden" value=""/>
+<!-- MBTI：快选 + 16 型速查 chips + 说明 -->
+<div class="form-group">
+<label>MBTI 性格类型（点击选择）</label>
+<div class="chip-group" id="mbtiQuick" style="margin-bottom:6px"></div>
+<div class="chip-group" id="mbtiChips"></div>
+<div class="mbti-box" id="mbtiExplainWrap" style="display:none; margin-top:8px;">
+<b id="mbtiExplainTitle"></b>
+<div class="muted" id="mbtiExplainText" style="margin-top:6px;"></div>
+</div>
+<div class="hint" id="mbtiHint">未选择</div>
+<input id="mbti" type="hidden" value=""/>
+</div>
+<!-- 决策主题（chips） + 模板 + 决策难题（保留） -->
+<div class="form-group">
+<label>决策主题（可选）</label>
+<div class="chip-group" id="problemCats"></div>
+<p class="hint">先选主题 → 会出现“常见模板”；也可直接写下方“决策难题”。</p>
+</div>
+<div class="form-group" id="problemTemplatesWrap" style="display:none;">
+<label>常见问题模板（选其一，可自动生成骨架）</label>
+<div class="chip-group" id="problemTemplates"></div>
+</div>
+<div class="form-group">
+<label for="problem">遇到的决策难题（可选）</label>
+<textarea id="problem" placeholder="不想写可留空；选模板后会自动填入骨架，你只需补关键点" rows="4"></textarea>
+</div>
+<!-- 性格标签 + 补充（保留） -->
+<div class="form-group">
+<label>性格标签（可多选，可选）</label>
+<div class="chip-group" id="personalityChips"></div>
+</div>
+<div class="form-group">
+<label for="personality">性格补充（可选）</label>
+<textarea id="personality" placeholder="若标签不足以表达，再补充几句" rows="3"></textarea>
+</div>
+<!-- 个人背景标签 + 补充（保留） -->
+<div class="form-group">
+<label>个人背景（可多选，可选）</label>
+<div class="chip-group" id="bgChips"></div>
+</div>
+<div class="form-group">
+<label for="background">个人背景补充（可选）</label>
+<textarea id="background" placeholder="补充少量关键事实即可" rows="3"></textarea>
+</div>
+</div>
+<button id="nextStep1">下一步</button>
+</div>
+<!-- 步骤2: 故事场景和第一个决策点 -->
+<div class="step-container" id="step2">
+<h2 class="step-title">第二步：故事场景</h2>
+<p class="step-description">AI根据您的信息创建了一个相关故事场景，请在关键节点做出选择</p>
+<div class="character-section">
+<h3 class="character-title">您的角色档案</h3>
+<div id="characterBadges">
+<!-- 角色信息徽章将由JavaScript动态生成 -->
+</div>
+</div>
+<div class="story-image">📖</div>
+<div class="story-section" id="storySection1">
+<div class="story-title">故事背景</div>
+<div id="storyContent1">故事内容加载中...</div>
+</div>
+<div class="options-container" id="decisionOptions1">
+<!-- 选项将由JavaScript动态生成 -->
+</div>
+<div class="nav-buttons">
+<button class="nav-btn back-btn" id="backStep2">上一步</button>
+<button class="nav-btn" disabled="" id="nextStep2">下一步</button>
+</div>
+</div>
+<!-- 步骤3: 第二个决策点 -->
+<div class="step-container" id="step3">
+<h2 class="step-title">第三步：故事发展</h2>
+<p class="step-description">故事继续发展，请做出下一个重要决策</p>
+<div class="choice-result" id="choiceResult1">
+<div class="choice-title">您上次的选择</div>
+<div id="choiceContent1">选择结果加载中...</div>
+</div>
+<div class="story-image">🌅</div>
+<div class="story-section" id="storySection2">
+<div class="story-title">故事继续</div>
+<div id="storyContent2">故事内容加载中...</div>
+</div>
+<div class="options-container" id="decisionOptions2">
+<!-- 选项将由JavaScript动态生成 -->
+</div>
+<div class="nav-buttons">
+<button class="nav-btn back-btn" id="backStep3">上一步</button>
+<button class="nav-btn" disabled="" id="nextStep3">下一步</button>
+</div>
+</div>
+<!-- 步骤4: 第三个决策点 -->
+<div class="step-container" id="step4">
+<h2 class="step-title">第四步：最终决策</h2>
+<p class="step-description">故事接近尾声，请做出最终决策</p>
+<div class="choice-result" id="choiceResult2">
+<div class="choice-title">您上次的选择</div>
+<div id="choiceContent2">选择结果加载中...</div>
+</div>
+<div class="story-image">⚡</div>
+<div class="story-section" id="storySection3">
+<div class="story-title">故事高潮</div>
+<div id="storyContent3">故事内容加载中...</div>
+</div>
+<div class="options-container" id="decisionOptions3">
+<!-- 选项将由JavaScript动态生成 -->
+</div>
+<div class="nav-buttons">
+<button class="nav-btn back-btn" id="backStep4">上一步</button>
+<button class="nav-btn" disabled="" id="nextStep4">下一步</button>
+</div>
+</div>
+<!-- 步骤5: 结果分析 -->
+<div class="step-container" id="step5">
+<h2 class="step-title">第五步：决策结果分析</h2>
+<p class="step-description">AI正在分析您的决策路径和可能结果...</p>
+<div class="choice-result" id="choiceResult3">
+<div class="choice-title">您上次的选择</div>
+<div id="choiceContent3">选择结果加载中...</div>
+</div>
+<div class="loading" id="loading">
+<div class="spinner"></div>
+<p style="text-align: center; margin-top: 15px;">AI正在分析您的决策路径...</p>
+</div>
+<div class="result-section" id="resultSection">
+<h2 class="result-title">您的决策路径分析</h2>
+<div class="result-content" id="resultContent"></div>
+<div class="consequence-section" id="consequenceSection">
+<div class="consequence-title">长期影响和未来发展</div>
+<div id="consequenceContent"></div>
+</div>
+<div class="life-review-section" id="lifeReviewSection">
+<div class="life-review-title">回看人生：决策回顾</div>
+<div id="lifeReviewContent"></div>
+</div>
+
+                
+                <div class="ending-section" id="endingSection">
+                    <div class="ending-title">最终结局</div>
+                    <div id="endingContent"></div>
+                </div>
+<div class="reflection-questions" id="reflectionSection">
+<div class="reflection-title">反思与学习</div>
+<div id="reflectionContent"></div>
+</div>
+</div>
+<div class="nav-buttons">
+<button class="nav-btn back-btn" id="backStep5">上一步</button>
+<button class="nav-btn" id="restartBtn" style="display:none;">重新开始</button>
+</div>
+</div>
+<p class="disclaimer">温馨提示：本工具旨在通过故事帮助您探索决策可能带来的结果，实际决策请结合具体情况</p>
+</div>
+<script>
+        // 状态管理
+        const state = {
+            currentStep: 1,
+            totalSteps: 5,
+            userSelections: {
+                name: '',
+                age: '',
+                profession: '',
+                personality: '',
+                background: '',
+                mbti: '',
+                problem: '',
+                decisions: []
+            }
+        };
+
+        // 初始化步骤指示器
+        function initStepIndicators() {
+            const container = document.getElementById('stepIndicators');
+            container.innerHTML = '';
+            
+            for (let i = 1; i <= state.totalSteps; i++) {
+                const indicator = document.createElement('div');
+                indicator.className = `step-indicator ${i === state.currentStep ? 'active' : ''}`;
+                indicator.setAttribute('data-step', i);
+                container.appendChild(indicator);
+            }
+        }
+
+        // 更新进度条
+        function updateProgressBar() {
+            const progress = ((state.currentStep - 1) / (state.totalSteps - 1)) * 100;
+            document.getElementById('progressBar').style.width = `${progress}%`;
+        }
+
+        // 切换步骤
+        function goToStep(step) {
+            // 隐藏所有步骤
+            document.querySelectorAll('.step-container').forEach(container => {
+                container.classList.remove('active');
+            });
+            
+            // 显示目标步骤
+            document.getElementById(`step${step}`).classList.add('active');
+            
+            // 更新当前步骤
+            state.currentStep = step;
+            
+            // 更新步骤指示器
+            document.querySelectorAll('.step-indicator').forEach((indicator, index) => {
+                if (index + 1 === step) {
+                    indicator.classList.add('active');
+                } else {
+                    indicator.classList.remove('active');
+                }
+            });
+            
+            // 更新进度条
+            updateProgressBar();
+        }
+
+        // 验证步骤1
+        
+const $=id=>document.getElementById(id);
+/* ====== 数据池（第1页） ====== */
+    const problemCats=["职业","学业","科研投稿","团队管理","项目选择","财务","健康","感情","其他"];
+    const categoryTemplates={
+      "职业":["是否跳槽","读博还是工作","转行可行性","升职 vs 转岗"],
+      "学业":["考研/读博选择","换导师/换课题","出国交换"],
+      "科研投稿":["继续大修还是转投","一篇拆两篇","找合作补实验"],
+      "团队管理":["重建协作规则","绩效与激励方案","引入新人或外包"],
+      "项目选择":["高风险高回报项目","稳妥保底项目","并行两条线"],
+      "财务":["继续学习投资/定投","创业投入/保守理财"],
+      "健康":["作息重建","运动与饮食计划"],
+      "感情":["异地/同城权衡","结婚与进修安排"],
+      "其他":["自定义问题骨架"]
+    };
+    const personalityPool=["内向","外向","理性","感性","谨慎","喜欢冒险","结果导向","过程导向","完美主义","同理心强","创造力强","抗压好"];
+    const bgPool=["在校生","应届","1–3年经验","3–5年经验","5–10年经验","科研方向","互联网行业","医疗健康","教育行业","已婚/有孩","赡养父母","海外居住"];
+
+    const rolesMap={
+      "IT/互联网":["后端工程师","前端工程师","移动开发","全栈工程师","测试/QA","运维/DevOps","架构师","数据分析师","数据工程师","算法工程师","产品经理","项目经理","用户运营","内容运营","增长运营","UI/UX设计","安全工程师","售前/售后技术支持"],
+      "金融/银行/保险":["投资经理","投研/研究员","量化研究","风控","审计","理财顾问","证券/基金/期货","信贷","精算","交易员","合规","金融IT"],
+      "教育/培训/高校":["老师/讲师","教研","教务/班主任","课程顾问","培训讲师","辅导员","实验员","科研助理/博士后"],
+      "医疗/制药/生物":["医生","护士","药师","医技/检验","医疗管理","医药代表","临床试验/CRA","医疗器械工程师","公卫/流调"],
+      "制造/工业/汽车":["机械工程师","电气工程师","工艺工程师","质量/质检","生产管理","设备工程师","供应链计划","采购","EHS","研发工程师","工业软件/MES"],
+      "能源/化工/矿业":["化工/工艺工程师","设备/管道工程师","现场/项目工程师","勘探/地质","运营/调度","安全工程师"],
+      "建筑/工程/房地产":["结构/土木工程师","建筑设计","造价/预算","施工经理","监理","BIM工程师","地产开发/策划","物业管理","城市规划"],
+      "交通/物流/供应链":["物流运营","仓储管理","运输调度","海外物流","关务/报关","供应链管理","采购","车队管理"],
+      "零售/电商/快消":["门店店长/店员","电商运营","新媒体/内容运营","品牌/市场","销售/渠道","商品企划","客服","采购/商品","数据分析"],
+      "文娱/传媒/游戏":["策划/编辑","记者/编导","摄影/后期","发行/宣发","PR/公关","运营","美术/动效","配音/声音"],
+      "法律/咨询/会计":["律师","法务","税务","审计","会计","咨询顾问(管理/IT/战略/人力)"],
+      "政府/公共事业/事业单位":["公务员","事业单位职员","社工","行政管理","科普/科教","科研院所研究员"],
+      "农业/环保/新能源":["农艺师","林业/渔业","环保工程师","碳管理/ESG","光伏工程师","风电工程师","储能工程师"],
+      "旅游/酒店/餐饮":["酒店管理","前台/礼宾","旅行顾问","导游","厨师/后厨","餐饮店长"],
+      "非营利/公益":["项目官员/经理","筹款","传播","监测评估"],
+      "自由职业/个体":["自媒体/创作者","设计接案","程序接案","独立顾问","创业者"],
+      "其他":["其他（请填写）"]
+    };
+
+    const mbtiExplain={
+      ISTJ:"内向、注重实感、思维主导、判断型", ISFJ:"内向、注重实感、情感主导、判断型",
+      INFJ:"内向、直觉主导、情感主导、判断型", INTJ:"内向、直觉主导、思维主导、判断型",
+      ISTP:"内向、注重实感、思维主导、感知型", ISFP:"内向、注重实感、情感主导、感知型",
+      INFP:"内向、直觉主导、情感主导、感知型", INTP:"内向、直觉主导、思维主导、感知型",
+      ESTP:"外向、注重实感、思维主导、感知型", ESFP:"外向、注重实感、情感主导、感知型",
+      ENFP:"外向、直觉主导、情感主导、感知型", ENTP:"外向、直觉主导、思维主导、感知型",
+      ESTJ:"外向、注重实感、思维主导、判断型", ESFJ:"外向、注重实感、情感主导、判断型",
+      ENFJ:"外向、直觉主导、情感主导、判断型", ENTJ:"外向、直觉主导、思维主导、判断型"
+    };
+    const mbtiOrder=["ISTJ","ISFJ","INFJ","INTJ","ISTP","ISFP","INFP","INTP","ESTP","ESFP","ENFP","ENTP","ESTJ","ESFJ","ENFJ","ENTJ"];
+
+    
+/* ====== 小工具 ====== */
+    function bindChips(containerId,{multiple=true,onChange}){
+      const c=$(containerId);
+      c.addEventListener('click',e=>{
+        const t=e.target.closest('.chip'); if(!t) return;
+        if(!multiple){[...c.querySelectorAll('.chip')].forEach(n=>n.classList.remove('selected')); t.classList.add('selected');}
+        else{t.classList.toggle('selected');}
+        onChange && onChange([...c.querySelectorAll('.chip.selected')].map(n=>n.dataset.value||n.dataset.type||n.textContent));
+      });
+    }
+    const selectedTexts=id=>[...$(id).querySelectorAll('.chip.selected')].map(n=>n.dataset.value||n.dataset.type||n.textContent);
+    function updateMBTIExplain(v){
+      if(v && mbtiExplain[v]){ $('mbtiExplainWrap').style.display='block'; $('mbtiExplainTitle').textContent=`${v} 类型说明`; $('mbtiExplainText').textContent=mbtiExplain[v]; $('mbtiHint').textContent=`已选择：${v}`; }
+      else { $('mbtiExplainWrap').style.display='none'; $('mbtiExplainTitle').textContent=''; $('mbtiExplainText').textContent=''; $('mbtiHint').textContent='未选择'; }
+    }
+
+    /* ====== 校验：仅姓名 & 年龄必填 ====== */
+    
+function validateStep1(){
+      const name=$('name').value.trim();
+      const age=$('age').value.trim();
+      if(!name){alert('请填写姓名');return false;}
+      if(!age){alert('请填写年龄');return false;}
+
+      // 汇总可选项
+      state.userSelections.name=name;
+      state.userSelections.age=age;
+      state.userSelections.profession=$('profession').value.trim();
+      state.userSelections.personality=$('personality').value.trim() || selectedTexts('personalityChips').join('、');
+      state.userSelections.background=$('background').value.trim() || selectedTexts('bgChips').join('、');
+      state.userSelections.mbti=$('mbti').value.trim();
+      state.userSelections.problem=$('problem').value.trim();
+      return true;
+    }
+
+        // 显示角色徽章
+        function displayCharacterBadges() {
+            const badgesContainer = document.getElementById('characterBadges');
+            badgesContainer.innerHTML = '';
+            
+            const { name, age, profession, personality, mbti } = state.userSelections;
+            
+            if (name) {
+                const badge = document.createElement('span');
+                badge.className = 'character-badge';
+                badge.textContent = `姓名: ${name}`;
+                badgesContainer.appendChild(badge);
+            }
+            
+            if (age) {
+                const badge = document.createElement('span');
+                badge.className = 'character-badge';
+                badge.textContent = `年龄: ${age}`;
+                badgesContainer.appendChild(badge);
+            }
+            
+            if (profession) {
+                const badge = document.createElement('span');
+                badge.className = 'character-badge';
+                badge.textContent = `职业: ${profession}`;
+                badgesContainer.appendChild(badge);
+            }
+            
+            if (mbti) {
+                const badge = document.createElement('span');
+                badge.className = 'character-badge';
+                badge.textContent = `MBTI: ${mbti}`;
+                badgesContainer.appendChild(badge);
+            }
+            
+            if (personality) {
+                const badge = document.createElement('span');
+                badge.className = 'character-badge';
+                badge.textContent = `性格: ${personality}`;
+                badgesContainer.appendChild(badge);
+            }
+        }
+
+        // 显示加载层
+        function showLoading(message = '处理中...') {
+            const overlay = document.createElement('div');
+            overlay.className = 'loading-overlay';
+            overlay.innerHTML = `
+                <div style="text-align: center;">
+                    <div class="spinner"></div>
+                    <p>${message}</p>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+        }
+
+        // 隐藏加载层
+        function hideLoading() {
+            const overlay = document.querySelector('.loading-overlay');
+            if (overlay) {
+                overlay.remove();
+            }
+        }
+
+        // 生成第一个故事场景和决策点
+        async function generateFirstStory() {
+            const storyContent = document.getElementById('storyContent1');
+            storyContent.innerHTML = '正在生成故事场景...';
+            
+            const optionsContainer = document.getElementById('decisionOptions1');
+            optionsContainer.innerHTML = '';
+            
+            // 显示加载状态
+            document.getElementById('nextStep2').disabled = true;
+            document.getElementById('nextStep2').textContent = '生成故事中...';
+            
+            try {
+                // 构建提示词 - 强调故事性和沉浸感
+                const prompt = `用户信息：
+姓名：${state.userSelections.name}
+年龄：${state.userSelections.age}
+职业：${state.userSelections.profession}
+性格：${state.userSelections.personality}
+个人背景：${state.userSelections.background}
+MBTI：${state.userSelections.mbti}
+决策难题：${state.userSelections.problem}
+
+请根据以上信息，创建一个与用户情况相关的沉浸式虚构故事场景。故事应该：
+1. 反映用户面临的决策难题，融入用户的个人信息（姓名、年龄、职业、性格、MBTI、个人背景）
+2. 创建生动、详细的场景描述，让用户有身临其境的感觉
+3. 在故事中设置一个关键决策点
+4. 提供2-3个不同的选择选项，确保每个选项都有明显区别且符合用户性格特点
+5. 考虑不同选项可能导致的不同结果，包括可能的失败或挑战
+
+请以JSON格式返回，格式如下：
+{
+  "story": "生动详细的故事文本，包含感官描述和情感元素",
+  "options": [
+    {
+      "title": "选项1标题",
+      "description": "选项1详细描述",
+      "risk_level": "高/中/低"
+    },
+    {
+      "title": "选项2标题",
+      "description": "选项2详细描述",
+      "risk_level": "高/中/低"
+    }
+  ]
+}`;
+
+                // 调用DeepSeek API
+                showLoading('正在生成故事场景...');
+                const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer sk-c61b75f2cf384e34ad46cb180978c848'
+                    },
+                    body: JSON.stringify({
+                        model: 'deepseek-chat',
+                        messages: [
+                            {
+                                role: 'system',
+                                content: '你是一个专业的沉浸式故事创作者和决策分析助手，擅长创建与现实生活相关的生动故事场景，帮助用户探索不同决策的可能结果。请确保故事生动、详细、引人入胜，包含丰富的感官描述和情感元素，让用户有身临其境的感觉。考虑不同选项可能带来的挑战和失败，而不仅仅是成功的结果。'
+                            },
+                            {
+                                role: 'user',
+                                content: prompt
+                            }
+                        ],
+                        temperature: 0.8,
+                        max_tokens: 2000
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('API请求失败');
+                }
+                
+                const data = await response.json();
+                const content = data.choices[0].message.content;
+                
+                // 尝试解析JSON
+                let storyData;
+                try {
+                    // 尝试提取JSON部分
+                    const jsonMatch = content.match(/\{[\s\S]*\}/);
+                    if (jsonMatch) {
+                        storyData = JSON.parse(jsonMatch[0]);
+                    } else {
+                        // 如果无法提取JSON，使用默认故事
+                        storyData = {
+                            story: `在一个忙碌的${state.userSelections.profession}工作日，${state.userSelections.name}坐在办公桌前，窗外是城市的喧嚣。桌上堆满了文件和报告，电脑屏幕上闪烁着未读邮件。${state.userSelections.name}深吸一口气，感受到肩上的压力。作为一个${state.userSelections.age}岁的${state.userSelections.profession}，${state.userSelections.name}面临着一个关键的职业决策。团队正在推进一个重要的项目，但遇到了意想不到的挑战。项目进度落后，预算紧张，团队成员士气低落。${state.userSelections.name}的${state.userSelections.mbti}性格让${state.userSelections.name}在决策时特别关注${state.userSelections.personality}。这时，${state.userSelections.name}需要决定如何应对这种情况。`,
+                            options: [
+                                {
+                                    title: "保守策略",
+                                    description: "缩减项目范围，确保核心功能按时交付，避免进一步风险",
+                                    risk_level: "低"
+                                },
+                                {
+                                    title: "积极应对",
+                                    description: "申请额外资源，按原计划推进项目，寻求突破性解决方案",
+                                    risk_level: "高"
+                                }
+                            ]
+                        };
+                    }
+                } catch (e) {
+                    // 如果解析失败，使用默认故事
+                    storyData = {
+                        story: `在一个忙碌的${state.userSelections.profession}工作日，${state.userSelections.name}坐在办公桌前，窗外是城市的喧嚣。桌上堆满了文件和报告，电脑屏幕上闪烁着未读邮件。${state.userSelections.name}深吸一口气，感受到肩上的压力。作为一个${state.userSelections.age}岁的${state.userSelections.profession}，${state.userSelections.name}面临着一个关键的职业决策。团队正在推进一个重要的项目，但遇到了意想不到的挑战。项目进度落后，预算紧张，团队成员士气低落。${state.userSelections.name}的${state.userSelections.mbti}性格让${state.userSelections.name}在决策时特别关注${state.userSelections.personality}。这时，${state.userSelections.name}需要决定如何应对这种情况。`,
+                        options: [
+                            {
+                                title: "保守策略",
+                                description: "缩减项目范围，确保核心功能按时交付，避免进一步风险",
+                                risk_level: "低"
+                            },
+                            {
+                                title: "积极应对",
+                                description: "申请额外资源，按原计划推进项目，寻求突破性解决方案",
+                                risk_level: "高"
+                            }
+                        ]
+                    };
+                }
+                
+                // 更新故事内容
+                storyContent.innerHTML = storyData.story;
+                
+                // 生成选项卡片
+                storyData.options.forEach((option, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'option-card';
+                    card.innerHTML = `
+                        <div class="option-title">${option.title}</div>
+                        <div class="option-description">${option.description}</div>
+                        ${option.risk_level ? `<div class="risk-indicator" style="background-color: ${option.risk_level === '高' ? 'rgba(255, 107, 107, 0.3)' : option.risk_level === '中' ? 'rgba(255, 167, 38, 0.3)' : 'rgba(102, 187, 106, 0.3)'}">风险等级: ${option.risk_level}</div>` : ''}
+                    `;
+                    
+                    card.addEventListener('click', () => {
+                        // 清除其他选项的选择状态
+                        document.querySelectorAll('#decisionOptions1 .option-card').forEach(c => {
+                            c.classList.remove('selected');
+                        });
+                        
+                        // 设置当前选项为选中状态
+                        card.classList.add('selected');
+                        
+                        // 保存选择
+                        state.userSelections.decisions[0] = {
+                            title: option.title,
+                            description: option.description,
+                            risk_level: option.risk_level
+                        };
+                        
+                        // 启用下一步按钮
+                        document.getElementById('nextStep2').disabled = false;
+                        document.getElementById('nextStep2').textContent = '下一步';
+                    });
+                    
+                    optionsContainer.appendChild(card);
+                });
+                
+            } catch (error) {
+                console.error('API调用错误:', error);
+                storyContent.innerHTML = '生成故事时出现错误，请稍后重试。';
+            } finally {
+                hideLoading();
+                document.getElementById('nextStep2').disabled = false;
+                document.getElementById('nextStep2').textContent = '下一步';
+            }
+        }
+
+        // 生成第二个故事场景和决策点
+        async function generateSecondStory() {
+            const storyContent = document.getElementById('storyContent2');
+            storyContent.innerHTML = '正在生成故事发展...';
+            
+            const choiceContent = document.getElementById('choiceContent1');
+            choiceContent.innerHTML = `您选择了：${state.userSelections.decisions[0].title} - ${state.userSelections.decisions[0].description}`;
+            
+            const optionsContainer = document.getElementById('decisionOptions2');
+            optionsContainer.innerHTML = '';
+            
+            // 显示加载状态
+            document.getElementById('nextStep3').disabled = true;
+            document.getElementById('nextStep3').textContent = '生成故事中...';
+            
+            try {
+                // 构建提示词 - 强调故事性和沉浸感
+                const prompt = `用户信息：
+姓名：${state.userSelections.name}
+年龄：${state.userSelections.age}
+职业：${state.userSelections.profession}
+性格：${state.userSelections.personality}
+个人背景：${state.userSelections.background}
+MBTI：${state.userSelections.mbti}
+决策难题：${state.userSelections.problem}
+
+用户在上一个决策点选择了：${state.userSelections.decisions[0].title} - ${state.userSelections.decisions[0].description}
+
+请根据用户的选择，继续发展故事。故事应该：
+1. 首先描述用户选择带来的直接结果和影响，包括可能的挑战和失败
+2. 然后继续发展故事，创建新的场景和挑战
+3. 设置一个新的关键决策点
+4. 提供2个不同的选择选项，确保选项之间有明显区别且符合用户性格特点
+5. 考虑不同选项可能导致的不同结果，包括可能的失败或挑战
+
+请以JSON格式返回，格式如下：
+{
+  "choiceResult": "用户选择带来的直接结果和影响描述",
+  "story": "新场景的故事文本，包含感官描述和情感元素",
+  "options": [
+    {
+      "title": "选项1标题",
+      "description": "选项1详细描述",
+      "risk_level": "高/中/低"
+    },
+    {
+      "title": "选项2标题",
+      "description": "选项2详细描述",
+      "risk_level": "高/中/低"
+    }
+  ]
+}`;
+
+                // 调用DeepSeek API
+                showLoading('正在生成故事发展...');
+                const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer sk-c61b75f2cf384e34ad46cb180978c848'
+                    },
+                    body: JSON.stringify({
+                        model: 'deepseek-chat',
+                        messages: [
+                            {
+                                role: 'system',
+                                content: '你是一个专业的沉浸式故事创作者和决策分析助手，擅长创建与现实生活相关的生动故事场景，帮助用户探索不同决策的可能结果。请确保故事生动、详细、引人入胜，包含丰富的感官描述和情感元素，让用户有身临其境的感觉。考虑不同选项可能带来的挑战和失败，而不仅仅是成功的结果。确保故事有良好的连续性。'
+                            },
+                            {
+                                role: 'user',
+                                content: prompt
+                            }
+                        ],
+                        temperature: 0.8,
+                        max_tokens: 2000
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('API请求失败');
+                }
+                
+                const data = await response.json();
+                const content = data.choices[0].message.content;
+                
+                // 尝试解析JSON
+                let storyData;
+                try {
+                    // 尝试提取JSON部分
+                    const jsonMatch = content.match(/\{[\s\S]*\}/);
+                    if (jsonMatch) {
+                        storyData = JSON.parse(jsonMatch[0]);
+                    } else {
+                        // 如果无法提取JSON，使用默认故事
+                        storyData = {
+                            choiceResult: `您选择了${state.userSelections.decisions[0].title}。这个决定带来了立竿见影的效果 - 项目压力有所缓解，但团队内部出现了一些分歧。`,
+                            story: `几天后，${state.userSelections.name}的决策带来了新的局面。团队对${state.userSelections.name}的选择有不同的反应，项目进展出现新的变化。${state.userSelections.name}注意到团队成员的表情各异——有些人的眼神中闪烁着理解，有些则带着疑虑。${state.userSelections.name}的${state.userSelections.mbti}性格让${state.userSelections.name}特别敏感地察觉到这些微妙的变化。这时，${state.userSelections.name}需要决定如何处理团队成员的不同意见和项目的新挑战。`,
+                            options: [
+                                {
+                                    title: "加强沟通",
+                                    description: "组织团队会议，充分讨论不同观点，寻求共识",
+                                    risk_level: "中"
+                                },
+                                {
+                                    title: "坚定执行",
+                                    description: "坚持原有决策，推动团队向前，强调目标导向",
+                                    risk_level: "高"
+                                }
+                            ]
+                        };
+                    }
+                } catch (e) {
+                    // 如果解析失败，使用默认故事
+                    storyData = {
+                        choiceResult: `您选择了${state.userSelections.decisions[0].title}。这个决定带来了立竿见影的效果 - 项目压力有所缓解，但团队内部出现了一些分歧。`,
+                        story: `几天后，${state.userSelections.name}的决策带来了新的局面。团队对${state.userSelections.name}的选择有不同的反应，项目进展出现新的变化。${state.userSelections.name}注意到团队成员的表情各异——有些人的眼神中闪烁着理解，有些则带着疑虑。${state.userSelections.name}的${state.userSelections.mbti}性格让${state.userSelections.name}特别敏感地察觉到这些微妙的变化。这时，${state.userSelections.name}需要决定如何处理团队成员的不同意见和项目的新挑战。`,
+                        options: [
+                            {
+                                title: "加强沟通",
+                                description: "组织团队会议，充分讨论不同观点，寻求共识",
+                                risk_level: "中"
+                            },
+                            {
+                                title: "坚定执行",
+                                description: "坚持原有决策，推动团队向前，强调目标导向",
+                                risk_level: "高"
+                            }
+                        ]
+                    };
+                }
+                
+                // 更新选择结果
+                choiceContent.innerHTML += `<br><br>${storyData.choiceResult}`;
+                
+                // 更新故事内容
+                storyContent.innerHTML = storyData.story;
+                
+                // 生成选项卡片
+                storyData.options.forEach((option, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'option-card';
+                    card.innerHTML = `
+                        <div class="option-title">${option.title}</div>
+                        <div class="option-description">${option.description}</div>
+                        ${option.risk_level ? `<div class="risk-indicator" style="background-color: ${option.risk_level === '高' ? 'rgba(255, 107, 107, 0.3)' : option.risk_level === '中' ? 'rgba(255, 167, 38, 0.3)' : 'rgba(102, 187, 106, 0.3)'}">风险等级: ${option.risk_level}</div>` : ''}
+                    `;
+                    
+                    card.addEventListener('click', () => {
+                        // 清除其他选项的选择状态
+                        document.querySelectorAll('#decisionOptions2 .option-card').forEach(c => {
+                            c.classList.remove('selected');
+                        });
+                        
+                        // 设置当前选项为选中状态
+                        card.classList.add('selected');
+                        
+                        // 保存选择
+                        state.userSelections.decisions[1] = {
+                            title: option.title,
+                            description: option.description,
+                            risk_level: option.risk_level
+                        };
+                        
+                        // 启用下一步按钮
+                        document.getElementById('nextStep3').disabled = false;
+                        document.getElementById('nextStep3').textContent = '下一步';
+                    });
+                    
+                    optionsContainer.appendChild(card);
+                });
+                
+            } catch (error) {
+                console.error('API调用错误:', error);
+                storyContent.innerHTML = '生成故事时出现错误，请稍后重试。';
+            } finally {
+                hideLoading();
+                document.getElementById('nextStep3').disabled = false;
+                document.getElementById('nextStep3').textContent = '下一步';
+            }
+        }
+
+        // 生成第三个故事场景和决策点
+        async function generateThirdStory() {
+            const storyContent = document.getElementById('storyContent3');
+            storyContent.innerHTML = '正在生成故事高潮...';
+            
+            const choiceContent = document.getElementById('choiceContent2');
+            choiceContent.innerHTML = `您选择了：${state.userSelections.decisions[1].title} - ${state.userSelections.decisions[1].description}`;
+            
+            const optionsContainer = document.getElementById('decisionOptions3');
+            optionsContainer.innerHTML = '';
+            
+            // 显示加载状态
+            document.getElementById('nextStep4').disabled = true;
+            document.getElementById('nextStep4').textContent = '生成故事中...';
+            
+            try {
+                // 构建提示词 - 强调故事性和沉浸感
+                const prompt = `用户信息：
+姓名：${state.userSelections.name}
+年龄：${state.userSelections.age}
+职业：${state.userSelections.profession}
+性格：${state.userSelections.personality}
+个人背景：${state.userSelections.background}
+MBTI：${state.userSelections.mbti}
+决策难题：${state.userSelections.problem}
+
+用户决策路径：
+1. ${state.userSelections.decisions[0].title} - ${state.userSelections.decisions[0].description}
+2. ${state.userSelections.decisions[1].title} - ${state.userSelections.decisions[1].description}
+
+请根据用户的决策路径，继续发展故事。故事应该：
+1. 首先描述用户上一个选择带来的直接结果和影响，包括可能的挑战和失败
+2. 然后继续发展故事，创建紧张、高潮迭起的场景
+3. 设置最后一个关键决策点
+4. 提供2个不同的选择选项，这些选项应该导向不同的结局，确保选项之间有明显区别且符合用户性格特点
+5. 考虑不同选项可能导致的不同结果，包括可能的失败或挑战
+
+请以JSON格式返回，格式如下：
+{
+  "choiceResult": "用户选择带来的直接结果和影响描述",
+  "story": "高潮场景的故事文本，包含感官描述和情感元素",
+  "options": [
+    {
+      "title": "选项1标题",
+      "description": "选项1详细描述",
+      "risk_level": "高/中/低"
+    },
+    {
+      "title": "选项2标题",
+      "description": "选项2详细描述",
+      "risk_level": "高/中/低"
+    }
+  ]
+}`;
+
+                // 调用DeepSeek API
+                showLoading('正在生成故事高潮...');
+                const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer sk-c61b75f2cf384e34ad46cb180978c848'
+                    },
+                    body: JSON.stringify({
+                        model: 'deepseek-chat',
+                        messages: [
+                            {
+                                role: 'system',
+                                content: '你是一个专业的沉浸式故事创作者和决策分析助手，擅长创建与现实生活相关的生动故事场景，帮助用户探索不同决策的可能结果。请确保故事生动、详细、引人入胜，包含丰富的感官描述和情感元素，让用户有身临其境的感觉。特别在故事高潮部分，要创造紧张感和情感冲击力。考虑不同选项可能带来的挑战和失败，而不仅仅是成功的结果。确保故事有良好的连续性。'
+                            },
+                            {
+                                role: 'user',
+                                content: prompt
+                            }
+                        ],
+                        temperature: 0.8,
+                        max_tokens: 2000
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('API请求失败');
+                }
+                
+                const data = await response.json();
+                const content = data.choices[0].message.content;
+                
+                // 尝试解析JSON
+                let storyData;
+                try {
+                    // 尝试提取JSON部分
+                    const jsonMatch = content.match(/\{[\s\S]*\}/);
+                    if (jsonMatch) {
+                        storyData = JSON.parse(jsonMatch[0]);
+                    } else {
+                        // 如果无法提取JSON，使用默认故事
+                        storyData = {
+                            choiceResult: `您选择了${state.userSelections.decisions[1].title}。这个决定进一步塑造了项目的走向 - 团队动态发生了显著变化，项目进入关键阶段。`,
+                            story: `故事接近尾声，${state.userSelections.name}的决策已经塑造了项目的走向和团队的氛围。现在面临最终的关键时刻，${state.userSelections.name}站在办公室窗前，望着窗外渐渐暗下来的天空。${state.userSelections.name}的${state.userSelections.mbti}性格让${state.userSelections.name}在此时特别感受到${state.userSelections.personality}。项目已经到了最后的冲刺阶段，${state.userSelections.name}的选择将决定项目的最终成果和${state.userSelections.name}的职业发展路径。${state.userSelections.name}深吸一口气，知道这个决定将影响深远。`,
+                            options: [
+                                {
+                                    title: "全力以赴",
+                                    description: "投入所有资源，追求最佳结果，承担相应风险",
+                                    risk_level: "高"
+                                },
+                                {
+                                    title: "稳妥收尾",
+                                    description: "确保项目顺利完成，避免风险，接受适度结果",
+                                    risk_level: "低"
+                                }
+                            ]
+                        };
+                    }
+                } catch (e) {
+                    // 如果解析失败，使用默认故事
+                    storyData = {
+                        choiceResult: `您选择了${state.userSelections.decisions[1].title}。这个决定进一步塑造了项目的走向 - 团队动态发生了显著变化，项目进入关键阶段。`,
+                        story: `故事接近尾声，${state.userSelections.name}的决策已经塑造了项目的走向和团队的氛围。现在面临最终的关键时刻，${state.userSelections.name}站在办公室窗前，望着窗外渐渐暗下来的天空。${state.userSelections.name}的${state.userSelections.mbti}性格让${state.userSelections.name}在此时特别感受到${state.userSelections.personality}。项目已经到了最后的冲刺阶段，${state.userSelections.name}的选择将决定项目的最终成果和${state.userSelections.name}的职业发展路径。${state.userSelections.name}深吸一口气，知道这个决定将影响深远。`,
+                        options: [
+                            {
+                                title: "全力以赴",
+                                description: "投入所有资源，追求最佳结果，承担相应风险",
+                                risk_level: "高"
+                            },
+                            {
+                                title: "稳妥收尾",
+                                description: "确保项目顺利完成，避免风险，接受适度结果",
+                                risk_level: "低"
+                            }
+                        ]
+                    };
+                }
+                
+                // 更新选择结果
+                choiceContent.innerHTML += `<br><br>${storyData.choiceResult}`;
+                
+                // 更新故事内容
+                storyContent.innerHTML = storyData.story;
+                
+                // 生成选项卡片
+                storyData.options.forEach((option, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'option-card';
+                    card.innerHTML = `
+                        <div class="option-title">${option.title}</div>
+                        <div class="option-description">${option.description}</div>
+                        ${option.risk_level ? `<div class="risk-indicator" style="background-color: ${option.risk_level === '高' ? 'rgba(255, 107, 107, 0.3)' : option.risk_level === '中' ? 'rgba(255, 167, 38, 0.3)' : 'rgba(102, 187, 106, 0.3)'}">风险等级: ${option.risk_level}</div>` : ''}
+                    `;
+                    
+                    card.addEventListener('click', () => {
+                        // 清除其他选项的选择状态
+                        document.querySelectorAll('#decisionOptions3 .option-card').forEach(c => {
+                            c.classList.remove('selected');
+                        });
+                        
+                        // 设置当前选项为选中状态
+                        card.classList.add('selected');
+                        
+                        // 保存选择
+                        state.userSelections.decisions[2] = {
+                            title: option.title,
+                            description: option.description,
+                            risk_level: option.risk_level
+                        };
+                        
+                        // 启用下一步按钮
+                        document.getElementById('nextStep4').disabled = false;
+                        document.getElementById('nextStep4').textContent = '下一步';
+                    });
+                    
+                    optionsContainer.appendChild(card);
+                });
+                
+            } catch (error) {
+                console.error('API调用错误:', error);
+                storyContent.innerHTML = '生成故事时出现错误，请稍后重试。';
+            } finally {
+                hideLoading();
+                document.getElementById('nextStep4').disabled = false;
+                document.getElementById('nextStep4').textContent = '下一步';
+            }
+        }
+
+        // 生成最终决策分析
+        async function generateFinalAnalysis() {
+            // 显示加载状态
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('resultSection').style.display = 'none';
+            
+            // 更新最后的选择结果
+            const choiceContent = document.getElementById('choiceContent3');
+            choiceContent.innerHTML = `您选择了：${state.userSelections.decisions[2].title} - ${state.userSelections.decisions[2].description}`;
+            
+            try {
+                // 构建提示词 - 强调后续发展和长期影响
+                const prompt = `用户信息：
+姓名：${state.userSelections.name}
+年龄：${state.userSelections.age}
+职业：${state.userSelections.profession}
+性格：${state.userSelections.personality}
+个人背景：${state.userSelections.background}
+MBTI：${state.userSelections.mbti}
+原始决策难题：${state.userSelections.problem}
+
+用户完整决策路径：
+1. ${state.userSelections.decisions[0].title} - ${state.userSelections.decisions[0].description}
+2. ${state.userSelections.decisions[1].title} - ${state.userSelections.decisions[1].description}
+3. ${state.userSelections.decisions[2].title} - ${state.userSelections.decisions[2].description}
+
+请根据用户的完整决策路径，分析：
+1. 这一系列决策的总体评价和故事结局，包括可能的失败和挑战
+2. 这些决策可能带来的长期影响和未来发展，而不是简单重复选择内容
+3. 对每一步决策的回顾，分析如果选择其他选项会有什么不同的结果
+4. 针对用户原始决策难题的实际建议，考虑用户的职业和年龄特点
+5. 从这次经历中可以学到的决策智慧和反思
+6. 用 2-4 句写出一个画面感强的“最终结局”（ending），聚焦人物处境与情绪收束
+
+请以JSON格式返回，格式如下：
+{
+  "analysis": "总体分析和故事结局描述",
+  "consequences": "长期影响和未来发展分析",
+  "life_review": [
+    {
+      "decision_point": "第一步决策回顾",
+      "selected_outcome": "您选择的选项带来的结果",
+      "alternative_outcomes": [
+        {
+          "title": "其他选项1",
+          "outcome": "如果选择这个选项可能带来的结果",
+          "learning": "从这个对比中可以学到的教训"
+        },
+        {
+          "title": "其他选项2", 
+          "outcome": "如果选择这个选项可能带来的结果",
+          "learning": "从这个对比中可以学到的教训"
+        }
+      ]
+    },
+    {
+      "decision_point": "第二步决策回顾",
+      "selected_outcome": "您选择的选项带来的结果",
+      "alternative_outcomes": [
+        {
+          "title": "其他选项1",
+          "outcome": "如果选择这个选项可能带来的结果",
+          "learning": "从这个对比中可以学到的教训"
+        }
+      ]
+    },
+    {
+      "decision_point": "第三步决策回顾",
+      "selected_outcome": "您选择的选项带来的结果",
+      "alternative_outcomes": [
+        {
+          "title": "其他选项1",
+          "outcome": "如果选择这个选项可能带来的结果",
+          "learning": "从这个对比中可以学到的教训"
+        }
+      ]
+    }
+  ],
+  "reflection": "决策智慧和反思建议",
+  "ending": "用2-4句写出的最终结局，画面感强，点题收束"
+}`;
+
+                // 调用DeepSeek API
+                showLoading('正在分析决策路径...');
+                const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer sk-c61b75f2cf384e34ad46cb180978c848'
+                    },
+                    body: JSON.stringify({
+                        model: 'deepseek-chat',
+                        messages: [
+                            {
+                                role: 'system',
+                                content: '你是一个专业的决策分析助手，能够基于用户的完整决策路径提供深入的分析和建议。请确保分析侧重于长期影响和未来发展，而不是简单重复之前的选项。提供有深度的反思和实用的建议。特别要分析每一步决策的其他可能结果，提供"如果...会怎样"的思考。返回结果必须是有效的JSON格式。'
+                            },
+                            {
+                                role: 'user',
+                                content: prompt
+                            }
+                        ],
+                        temperature: 0.7,
+                        max_tokens: 3000
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('API请求失败');
+                }
+                
+                const data = await response.json();
+                const content = data.choices[0].message.content;
+                
+                // 尝试解析JSON
+                let analysisData;
+                try {
+                    // 尝试提取JSON部分
+                    const jsonMatch = content.match(/\{[\s\S]*\}/);
+                    if (jsonMatch) {
+                        analysisData = JSON.parse(jsonMatch[0]);
+                    } else {
+                        // 如果无法提取JSON，使用默认分析
+                        analysisData = {
+                            analysis: `通过这一系列决策，${state.userSelections.name}完成了一段重要的职业旅程。故事以项目成功交付告终，但更重要的是，${state.userSelections.name}在过程中获得了宝贵的领导经验。`,
+                            consequences: "这一决策路径将在未来几个月甚至几年内持续产生影响。您的职业声誉将因此得到提升，团队对您的信任度增加。长期来看，这种决策风格可能带来稳定的职业发展，但也可能限制突破性机会。对于您作为" + state.userSelections.profession + "的职业轨迹，这种经验将成为未来面对更复杂决策时的宝贵参考。",
+                            life_review: [
+                                {
+                                    decision_point: "第一步决策回顾",
+                                    selected_outcome: "您选择了" + state.userSelections.decisions[0].title + "，这个决定帮助项目稳定了基础，但也带来了一些内部挑战。",
+                                    alternative_outcomes: [
+                                        {
+                                            title: "其他选项",
+                                            outcome: "如果选择其他选项，可能会带来更快的进展，但也可能导致更大的风险。",
+                                            learning: "从这个对比中可以学到，在项目早期阶段，稳定基础往往比追求速度更重要。"
+                                        }
+                                    ]
+                                },
+                                {
+                                    decision_point: "第二步决策回顾", 
+                                    selected_outcome: "您选择了" + state.userSelections.decisions[1].title + "，这个决定加强了团队凝聚力，但也耗费了额外的时间。",
+                                    alternative_outcomes: [
+                                        {
+                                            title: "其他选项",
+                                            outcome: "如果选择其他选项，可能会更快推进项目，但也可能导致团队士气下降。",
+                                            learning: "从这个对比中可以学到，团队士气对项目成功的影响往往比我们想象的要大。"
+                                        }
+                                    ]
+                                },
+                                {
+                                    decision_point: "第三步决策回顾",
+                                    selected_outcome: "您选择了" + state.userSelections.decisions[2].title + "，这个决定确保了项目的稳定交付。",
+                                    alternative_outcomes: [
+                                        {
+                                            title: "其他选项",
+                                            outcome: "如果选择其他选项，可能会带来更大的成功，但也可能导致项目失败的风险。",
+                                            learning: "从这个对比中可以学到，在关键时刻，平衡风险与回报是决策的核心。"
+                                        }
+                                    ]
+                                }
+                            ],
+                            reflection: "这次经历教会我们：1. 每个决策都是学习的机会，无论结果如何 2. 了解自己的性格倾向（如您的" + state.userSelections.mbti + "类型）有助于做出更符合本性的选择 3. 在职业生涯中，平衡风险与回报是一个持续的过程 4. 团队动态往往比单纯的项目成果更影响长期成功"
+                        };
+                    }
+                } catch (e) {
+                    // 如果解析失败，使用默认分析
+                    analysisData = {
+                        analysis: `通过这一系列决策，${state.userSelections.name}完成了一段重要的职业旅程。故事以项目成功交付告终，但更重要的是，${state.userSelections.name}在过程中获得了宝贵的领导经验。`,
+                        consequences: "这一决策路径将在未来几个月甚至几年内持续产生影响。您的职业声誉将因此得到提升，团队对您的信任度增加。长期来看，这种决策风格可能带来稳定的职业发展，但也可能限制突破性机会。对于您作为" + state.userSelections.profession + "的职业轨迹，这种经验将成为未来面对更复杂决策时的宝贵参考。",
+                        life_review: [
+                            {
+                                decision_point: "第一步决策回顾",
+                                selected_outcome: "您选择了" + state.userSelections.decisions[0].title + "，这个决定帮助项目稳定了基础，但也带来了一些内部挑战。",
+                                alternative_outcomes: [
+                                    {
+                                        title: "其他选项",
+                                        outcome: "如果选择其他选项，可能会带来更快的进展，但也可能导致更大的风险。",
+                                        learning: "从这个对比中可以学到，在项目早期阶段，稳定基础往往比追求速度更重要。"
+                                    }
+                                ]
+                            },
+                            {
+                                decision_point: "第二步决策回顾", 
+                                selected_outcome: "您选择了" + state.userSelections.decisions[1].title + "，这个决定加强了团队凝聚力，但也耗费了额外的时间。",
+                                alternative_outcomes: [
+                                    {
+                                        title: "其他选项",
+                                        outcome: "如果选择其他选项，可能会更快推进项目，但也可能导致团队士气下降。",
+                                        learning: "从这个对比中可以学到，团队士气对项目成功的影响往往比我们想象的要大。"
+                                    }
+                                ]
+                            },
+                            {
+                                decision_point: "第三步决策回顾",
+                                selected_outcome: "您选择了" + state.userSelections.decisions[2].title + "，这个决定确保了项目的稳定交付。",
+                                alternative_outcomes: [
+                                    {
+                                        title: "其他选项",
+                                        outcome: "如果选择其他选项，可能会带来更大的成功，但也可能导致项目失败的风险。",
+                                        learning: "从这个对比中可以学到，在关键时刻，平衡风险与回报是决策的核心。"
+                                    }
+                                ]
+                            }
+                        ],
+                        reflection: "这次经历教会我们：1. 每个决策都是学习的机会，无论结果如何 2. 了解自己的性格倾向（如您的" + state.userSelections.mbti + "类型）有助于做出更符合本性的选择 3. 在职业生涯中，平衡风险与回报是一个持续的过程 4. 团队动态往往比单纯的项目成果更影响长期成功"
+                    };
+                }
+                
+                // 显示结果
+                document.getElementById('resultContent').innerHTML = analysisData.analysis.replace(/\n/g, '<br>');
+                document.getElementById('consequenceContent').innerHTML = analysisData.consequences.replace(/\n/g, '<br>');
+                
+                // 显示"回看人生"部分
+                let lifeReviewHTML = '';
+                if (analysisData.life_review && analysisData.life_review.length > 0) {
+                    analysisData.life_review.forEach(review => {
+                        lifeReviewHTML += `
+                            <div class="decision-review">
+                                <div class="decision-review-title">${review.decision_point}</div>
+                                <p>${review.selected_outcome}</p>
+                                <div class="alternative-outcome">
+                                    <div class="alternative-title">如果选择其他选项：</div>
+                                    ${review.alternative_outcomes.map(alt => `
+                                        <p><strong>${alt.title}:</strong> ${alt.outcome}</p>
+                                        <p><em>${alt.learning}</em></p>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                document.getElementById('lifeReviewContent').innerHTML = lifeReviewHTML;
+                
+                
+                const defaultEnding = `${state.userSelections.name || '你'}在“${state.userSelections.decisions[2]?.title || '最终抉择'}”之后，带着${state.userSelections.decisions[2]?.risk_level || '未知风险'}的代价走向新的篇章。无论结果如何，你已从这段经历中获得清晰与成长。`;
+                document.getElementById('endingContent').innerHTML = (analysisData.ending || defaultEnding).replace(/\n/g, '<br>');
+document.getElementById('reflectionContent').innerHTML = analysisData.reflection.replace(/\n/g, '<br>');
+                document.getElementById('resultSection').style.display = 'block';
+                document.getElementById('restartBtn').style.display = 'block';
+                
+            } catch (error) {
+                console.error('API调用错误:', error);
+                document.getElementById('resultContent').innerHTML = 
+                    '抱歉，分析过程中出现了一些问题。请稍后再试，或者检查您的网络连接。';
+                document.getElementById('consequenceContent').innerHTML = 
+                    '无法获取详细的结果分析。';
+                document.getElementById('lifeReviewContent').innerHTML = 
+                    '无法生成决策回顾。';
+                document.getElementById('endingContent').innerHTML = '暂时无法生成最终结局，请稍后重试。';
+                document.getElementById('reflectionContent').innerHTML = 
+                    '建议您回顾自己的决策过程，思考哪些因素影响了您的选择。';
+                document.getElementById('resultSection').style.display = 'block';
+                document.getElementById('restartBtn').style.display = 'block';
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                hideLoading();
+            }
+        }
+
+        // 初始化页面
+        function initPage() {
+            // 初始化步骤指示器
+            initStepIndicators();
+
+  // 主题 chips & 模板联动
+      $('problemCats').innerHTML=problemCats.map(v=>`<span class="chip" data-value="${v}">${v}</span>`).join('');
+      $('problemCats').addEventListener('click',e=>{
+        const t=e.target.closest('.chip'); if(!t) return;
+        [...$('problemCats').querySelectorAll('.chip')].forEach(n=>n.classList.remove('selected'));
+        t.classList.add('selected');
+        const cat=t.dataset.value; const list=categoryTemplates[cat]||[];
+        const wrap=$('problemTemplatesWrap'), box=$('problemTemplates');
+        if(list.length){ wrap.style.display='block'; box.innerHTML=list.map(x=>`<span class="chip" data-value="${x}">${x}</span>`).join('');
+          box.onclick=(ev)=>{ const ch=ev.target.closest('.chip'); if(!ch) return; [...box.querySelectorAll('.chip')].forEach(n=>n.classList.remove('selected')); ch.classList.add('selected'); if(!$('problem').value){$('problem').value=`【主题】${cat}｜【模板】${ch.dataset.value}｜【关键顾虑】（请补充1-2点）｜【目标】（请补充）`;}}
+        }else{ wrap.style.display='none'; box.innerHTML=''; }
+      });
+
+      // 性格/背景标签
+      $('personalityChips').innerHTML=personalityPool.map(v=>`<span class="chip" data-value="${v}">${v}</span>`).join('');
+      $('bgChips').innerHTML=bgPool.map(v=>`<span class="chip" data-value="${v}">${v}</span>`).join('');
+      // 让性格标签可点
+bindChips('personalityChips',{
+  multiple:true,
+  onChange:(values)=>{ 
+    $('personality').value = values.join('、'); 
+  }
+});
+
+// 让背景标签可点
+bindChips('bgChips',{
+  multiple:true,
+  onChange:(values)=>{ 
+    $('background').value = values.join('、'); 
+  }
+});
+
+      // 行业→岗位 + 其他（请填写）
+      const OTHER_ROLE='其他（请填写）';
+      $('industry').addEventListener('change',e=>{
+        const ind=e.target.value; const roleSel=$('role'); roleSel.innerHTML='';
+        if(!ind){roleSel.disabled=true; roleSel.innerHTML='<option value="">请先选择行业</option>'; $('roleOtherWrap').style.display='none'; $('roleOther').value=''; $('profession').value=''; return;}
+        const roles=(rolesMap[ind]||[]).slice(); if(!roles.includes(OTHER_ROLE)) roles.push(OTHER_ROLE);
+        roleSel.disabled=false; roleSel.innerHTML=['<option value="">请选择岗位</option>',...roles.map(r=>`<option>${r}</option>`)].join('');
+        $('roleOtherWrap').style.display='none'; $('roleOther').value=''; $('profession').value=ind;
+      });
+      $('role').addEventListener('change',e=>{
+        const ind=$('industry').value; const role=e.target.value;
+        if(role===OTHER_ROLE){ $('roleOtherWrap').style.display='block'; $('profession').value=ind; }
+        else{ $('roleOtherWrap').style.display='none'; $('roleOther').value=''; $('profession').value = (ind && role)? `${ind}-${role}` : (ind||''); }
+      });
+      $('roleOther').addEventListener('input',e=>{
+        const ind=$('industry').value; const custom=e.target.value.trim();
+        $('profession').value = custom ? (ind ? `${ind}-${custom}` : custom) : (ind||'');
+      });
+
+      // MBTI 快选 + 16型 chips
+      const quickPicks=[
+        {label:"理性规划",type:"INTJ"},
+        {label:"执行主导",type:"ESTJ"},
+        {label:"创意探索",type:"ENFP"},
+        {label:"共情沟通",type:"ENFJ"},
+        {label:"灵活应变",type:"ESTP"},
+        {label:"温暖守护",type:"ISFJ"}
+      ];
+      $('mbtiQuick').innerHTML=quickPicks.map(q=>`<span class="chip" data-type="${q.type}" title="${q.type}：${mbtiExplain[q.type]}">${q.label}（${q.type}）</span>`).join('');
+      $('mbtiChips').innerHTML=mbtiOrder.map(t=>`<span class="chip" data-type="${t}" title="${mbtiExplain[t]}">${t}</span>`).join('');
+
+      function selectMBTI(type){
+        // 高亮 16 型 chips
+        [...$('mbtiChips').querySelectorAll('.chip')].forEach(n=>n.classList.toggle('selected', n.dataset.type===type));
+        // 高亮快选
+        [...$('mbtiQuick').querySelectorAll('.chip')].forEach(n=>n.classList.toggle('selected', n.dataset.type===type));
+        $('mbti').value=type||''; updateMBTIExplain(type);
+      }
+      $('mbtiChips').addEventListener('click',e=>{const chip=e.target.closest('.chip'); if(!chip) return; selectMBTI(chip.dataset.type);});
+      $('mbtiQuick').addEventListener('click',e=>{const chip=e.target.closest('.chip'); if(!chip) return; selectMBTI(chip.dataset.type);});
+
+    
+
+            
+            // 步骤1按钮事件
+            document.getElementById('nextStep1').addEventListener('click', () => {
+                if (validateStep1()) {
+                    const button = document.getElementById('nextStep1');
+                    button.disabled = true;
+                    button.textContent = '处理中...';
+                    
+                    goToStep(2);
+                    displayCharacterBadges();
+                    generateFirstStory().finally(() => {
+                        button.disabled = false;
+                        button.textContent = '下一步';
+                    });
+                } else {
+                    alert('请填写完整信息');
+                }
+            });
+            
+            // 步骤2按钮事件
+            document.getElementById('nextStep2').addEventListener('click', async () => {
+                const button = document.getElementById('nextStep2');
+                button.disabled = true;
+                button.textContent = '生成故事中...';
+                
+                await generateSecondStory();
+                goToStep(3);
+                
+                button.disabled = false;
+                button.textContent = '下一步';
+            });
+            
+            document.getElementById('backStep2').addEventListener('click', () => {
+                goToStep(1);
+            });
+            
+            // 步骤3按钮事件
+            document.getElementById('nextStep3').addEventListener('click', async () => {
+                const button = document.getElementById('nextStep3');
+                button.disabled = true;
+                button.textContent = '生成故事中...';
+                
+                await generateThirdStory();
+                goToStep(4);
+                
+                button.disabled = false;
+                button.textContent = '下一步';
+            });
+            
+            document.getElementById('backStep3').addEventListener('click', () => {
+                goToStep(2);
+            });
+            
+            // 步骤4按钮事件
+            document.getElementById('nextStep4').addEventListener('click', () => {
+                const button = document.getElementById('nextStep4');
+                button.disabled = true;
+                button.textContent = '分析中...';
+                
+                goToStep(5);
+                generateFinalAnalysis().finally(() => {
+                    button.disabled = false;
+                    button.textContent = '下一步';
+                });
+            });
+            
+            document.getElementById('backStep4').addEventListener('click', () => {
+                goToStep(3);
+            });
+            
+            // 步骤5按钮事件
+            document.getElementById('backStep5').addEventListener('click', () => {
+                goToStep(4);
+            });
+            
+            document.getElementById('restartBtn').addEventListener('click', () => {
+                // 重置状态
+                state.currentStep = 1;
+                state.userSelections = {
+                    name: '',
+                    age: '',
+                    profession: '',
+                    personality: '',
+                    background: '',
+                    mbti: '',
+                    problem: '',
+                    decisions: []
+                };
+                
+                // 重置表单
+                document.getElementById('name').value = '';
+                document.getElementById('age').value = '';
+                document.getElementById('profession').value = '';
+                document.getElementById('personality').value = '';
+                document.getElementById('background').value = '';
+                document.getElementById('mbti').value = '';
+                document.getElementById('problem').value = '';
+                
+                // 隐藏结果
+                document.getElementById('resultSection').style.display = 'none';
+                document.getElementById('restartBtn').style.display = 'none';
+                
+                // 回到第一步
+                goToStep(1);
+            });
+        }
+
+        // 页面加载完成后初始化
+        window.addEventListener('load', initPage);
+    </script>
+</body>
+</html>
